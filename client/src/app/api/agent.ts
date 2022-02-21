@@ -2,9 +2,10 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { toast } from "react-toastify";
 import { history } from "../..";
 
-const sleep = () => new Promise(resolve => setTimeout(resolve, 500));
+const sleep = () => new Promise(resolve => setTimeout(resolve, 100));
 
 axios.defaults.baseURL = "http://localhost:5000/api/";
+axios.defaults.withCredentials = true;
 
 const responseBody = (response: AxiosResponse) => response.data;
 
@@ -13,7 +14,6 @@ axios.interceptors.response.use(async response => {
     return response;
   },
   (error: AxiosError) => {
-    console.log("caught by interceptor");
     const { data, status } = error.response!;
     switch (status) {
       case 400:
@@ -51,9 +51,9 @@ axios.interceptors.response.use(async response => {
 
 const requests = {
   get: (url: string) => axios.get(url).then(responseBody),
-  post: (url: string, body: {}) => axios.get(url, body).then(responseBody),
-  put: (url: string, body: {}) => axios.get(url, body).then(responseBody),
-  delete: (url: string) => axios.get(url).then(responseBody),
+  post: (url: string, body: {}) => axios.post(url, body).then(responseBody),
+  put: (url: string, body: {}) => axios.put(url, body).then(responseBody),
+  delete: (url: string) => axios.delete(url).then(responseBody),
 };
 
 const Catalog = {
@@ -69,6 +69,12 @@ const TestErrors = {
   getValidationError: () => requests.get("buggy/validation-error"),
 };
 
-const agent = { Catalog, TestErrors };
+const Basket = {
+  get: () => requests.get('basket'),
+  addItem: (productId: number, quantity: number = 1) => requests.post(`basket?productId=${productId}&quantity=${quantity}`, {}),
+  removeItem: (productId: number, quantity: number = 1) => requests.delete(`basket?productId=${productId}&quantity=${quantity}`)
+}
+
+const agent = { Catalog, TestErrors, Basket };
 
 export default agent;
