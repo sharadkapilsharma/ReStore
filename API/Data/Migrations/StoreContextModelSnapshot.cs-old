@@ -178,15 +178,15 @@ namespace API.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "4e03e6da-1d90-40b6-ad4f-5a4a59d0b119",
-                            ConcurrencyStamp = "86d27229-50a3-4afe-9272-bf7260d823d6",
+                            Id = "058be335-290c-467a-81b3-36d0e24e1d72",
+                            ConcurrencyStamp = "f3e592fd-d54b-4e2a-84b2-a730fcafd491",
                             Name = "member",
                             NormalizedName = "MEMBER"
                         },
                         new
                         {
-                            Id = "b5d9d736-17e0-4246-b0fb-b68511461577",
-                            ConcurrencyStamp = "875e54fc-6f9c-43bf-a9fb-bb00a1b45c90",
+                            Id = "34f9431d-36a2-4f79-a4e0-768af7591af1",
+                            ConcurrencyStamp = "c4c4dd52-2db7-4253-aed1-d78401a19460",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });

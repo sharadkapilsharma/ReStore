@@ -1,6 +1,11 @@
-import { Container, createTheme, CssBaseline, ThemeProvider } from "@mui/material";
+import {
+  Container,
+  createTheme,
+  CssBaseline,
+  ThemeProvider,
+} from "@mui/material";
 import Header from "./Header";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import HomePage from "../../features/home/HomePage";
 import Catalog from "../../features/catalog/Catalog";
@@ -12,31 +17,30 @@ import "react-toastify/dist/ReactToastify.css";
 import ServerError from "../errors/ServerError";
 import NotFound from "../errors/NotFound";
 import BasketPage from "../../features/basket/BasketPage";
-import agent from "../api/agent";
-import { getCookie } from "../util/util";
 import LoadingComponent from "./LoadingComponent";
 import CheckoutPage from "../../features/checkout/CheckoutPage";
 import { useAppDispatch } from "../store/configureStore";
-import { setBasket } from "../../features/basket/basketSlice";
+import { fetchBasketAsync } from "../../features/basket/basketSlice";
+import Login from "../../features/account/Login";
+import Register from "../../features/account/Register";
+import { fetchCurrentUser } from "../../features/account/accountSlice";
 
 function App() {
-  
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(true);
 
-  useEffect( () => {
-    const buyerId = getCookie('buyerId');
-    if (buyerId) {
-      agent.Basket.get()
-      .then(basket => dispatch(setBasket(basket)))
-      .catch(error => console.log(error))
-      .finally( () => setLoading(false));
+  const initApp = useCallback(async() => {
+    try {
+      await dispatch(fetchCurrentUser());
+      await dispatch(fetchBasketAsync());
+    } catch (error) {
+      console.log(error);
     }
-    else
-    {
-      setLoading(false);
-    }
-  }, [dispatch]);
+  }, [dispatch])
+
+  useEffect(() => {
+    initApp().then(() => setLoading(false));
+  }, [initApp])
 
   const [darkMode, setDarkMode] = useState(false);
   const paletteType = darkMode ? "dark" : "light";
@@ -53,11 +57,11 @@ function App() {
     setDarkMode(!darkMode);
   }
 
-  if (loading) return <LoadingComponent message='Initializing App...'/>
+  if (loading) return <LoadingComponent message="Initializing App..." />;
 
   return (
     <ThemeProvider theme={theme}>
-      <ToastContainer position='bottom-right' hideProgressBar />
+      <ToastContainer position="bottom-right" hideProgressBar />
       <CssBaseline />
       <Header darkMode={darkMode} handleThemeChange={handleThemeChange} />
       <Container>
@@ -69,7 +73,10 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/server-error" element={<ServerError />} />
           <Route path="/basket" element={<BasketPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />          
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Container>
@@ -78,6 +85,3 @@ function App() {
 }
 
 export default App;
-
-
-

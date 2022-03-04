@@ -1,23 +1,36 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { toast } from "react-toastify";
-import { history } from "../..";
+//import { history } from "../..";
+import { history } from "../../../src/index";
 import { PaginatedResponce } from "../models/pagination";
+import { store } from "../store/configureStore";
 
-const sleep = () => new Promise(resolve => setTimeout(resolve, 2000));
+const sleep = () => new Promise((resolve) => setTimeout(resolve, 2000));
 
 axios.defaults.baseURL = "http://localhost:5000/api/";
 axios.defaults.withCredentials = true;
 
 const responseBody = (response: AxiosResponse) => response.data;
 
-axios.interceptors.response.use(async response => {
-    await sleep();
-    const pagination = response.headers['pagination']; // always in lowercase
+axios.interceptors.request.use((config) => {
+  const token = store.getState().account.user?.token; // token is attched to every request
+   
+  if (token) config.headers!.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-if (pagination) {
-  response.data = new PaginatedResponce(response.data, JSON.parse(pagination));
-  return response;
-}
+axios.interceptors.response.use(
+  async (response) => {
+    await sleep();
+    const pagination = response.headers["pagination"]; // always in lowercase
+
+    if (pagination) {
+      response.data = new PaginatedResponce(
+        response.data,
+        JSON.parse(pagination)
+      );
+      return response;
+    }
 
     return response;
   },
@@ -25,22 +38,14 @@ if (pagination) {
     const { data, status } = error.response!;
     switch (status) {
       case 400:
-        console.log("data.errors...");
-        console.log(data.errors);
         if (data.errors) {
           const modelStateErrors: string[] = [];
           for (const key in data.errors) {
-            console.log("key");
-            console.log(key);
             if (data.errors[key]) {
               modelStateErrors.push(data.errors[key]);
-              console.log("data.errors[key]");
-              console.log(data.errors[key]);
             }
           }
-          console.log("modelStateErrors");
-          console.log(modelStateErrors);
-      throw modelStateErrors.flat();
+          throw modelStateErrors.flat();
         }
         toast.error(data.title);
         break;
@@ -48,7 +53,7 @@ if (pagination) {
         toast.error(data.title);
         break;
       case 500:
-        history.push('/server-error', {error: data});
+        history.push("/server-error", { error: data });
         break;
       default:
         break;
@@ -58,16 +63,17 @@ if (pagination) {
 );
 
 const requests = {
-  get: (url: string, params?: URLSearchParams) => axios.get(url, {params}).then(responseBody),
+  get: (url: string, params?: URLSearchParams) =>
+    axios.get(url, { params }).then(responseBody),
   post: (url: string, body: {}) => axios.post(url, body).then(responseBody),
   put: (url: string, body: {}) => axios.put(url, body).then(responseBody),
   delete: (url: string) => axios.delete(url).then(responseBody),
 };
 
 const Catalog = {
-  list: (params: URLSearchParams) => requests.get('products', params),
+  list: (params: URLSearchParams) => requests.get("products", params),
   details: (id: number) => requests.get(`products/${id}`),
-  fetchFilters: () => requests.get('products/filters')
+  fetchFilters: () => requests.get("products/filters"),
 };
 
 const TestErrors = {
@@ -79,11 +85,19 @@ const TestErrors = {
 };
 
 const Basket = {
-  get: () => requests.get('basket'),
-  addItem: (productId: number, quantity: number = 1) => requests.post(`basket?productId=${productId}&quantity=${quantity}`, {}),
-  removeItem: (productId: number, quantity: number = 1) => requests.delete(`basket?productId=${productId}&quantity=${quantity}`)
-}
+  get: () => requests.get("basket"),
+  addItem: (productId: number, quantity: number = 1) =>
+    requests.post(`basket?productId=${productId}&quantity=${quantity}`, {}),
+  removeItem: (productId: number, quantity: number = 1) =>
+    requests.delete(`basket?productId=${productId}&quantity=${quantity}`),
+};
 
-const agent = { Catalog, TestErrors, Basket };
+const Account = {
+  login: (values: any) => requests.post("account/login", values),
+  register: (values: any) => requests.post("account/register", values),
+  currentUser: () => requests.get("account/currentUser"),
+};
+
+const agent = { Catalog, TestErrors, Basket, Account };
 
 export default agent;
