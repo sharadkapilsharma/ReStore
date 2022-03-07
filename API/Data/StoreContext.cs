@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using API.Entities;
+using API.Entities.OrderAggregate;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace API.Data
 {
-    public class StoreContext : IdentityDbContext<User>
+    public class StoreContext : IdentityDbContext<User, Role, int>
     {
         public StoreContext(DbContextOptions options) : base(options)
         {
@@ -19,15 +20,22 @@ namespace API.Data
 
         public DbSet<Product> Products { get; set; }
         public DbSet<Basket> Baskets { get; set; }
-
+        public DbSet<Order> Orders { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<IdentityRole>()
+            builder.Entity<User>()
+                .HasOne(a => a.Address)
+                .WithOne()
+                .HasForeignKey<UserAddress>(a => a.Id)
+                .OnDelete(DeleteBehavior.Cascade);               
+            
+
+            builder.Entity<Role>()
                 .HasData(
-                    new IdentityRole { Name = "member", NormalizedName = "MEMBER" },
-                    new IdentityRole { Name = "Admin", NormalizedName = "ADMIN" }
+                    new Role { Id = 1, Name = "member", NormalizedName = "MEMBER" },
+                    new Role { Id = 2, Name = "Admin", NormalizedName = "ADMIN" }
                 );
         }
     }

@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Identity;
 
 namespace API.Entities
 {
-    // 1 user : 1 address relationship
-    public class User : IdentityUser<int>
+    public class Role :IdentityRole<int>
     {
-        public UserAddress Address { get; set; }
+        
     }
 }
