@@ -30,18 +30,18 @@ function App() {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(true);
 
-  const initApp = useCallback(async() => {
+  const initApp = useCallback(async () => {
     try {
       await dispatch(fetchCurrentUser());
       await dispatch(fetchBasketAsync());
     } catch (error) {
       console.log(error);
     }
-  }, [dispatch])
+  }, [dispatch]);
 
   useEffect(() => {
     initApp().then(() => setLoading(false));
-  }, [initApp])
+  }, [initApp]);
 
   const [darkMode, setDarkMode] = useState(false);
   const paletteType = darkMode ? "dark" : "light";
@@ -65,7 +65,7 @@ function App() {
       <ToastContainer position="bottom-right" hideProgressBar />
       <CssBaseline />
       <Header darkMode={darkMode} handleThemeChange={handleThemeChange} />
-      <Container>
+      <Container  sx={{ mt: 4}}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<Catalog />} />
