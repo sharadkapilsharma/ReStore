@@ -54,7 +54,7 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
       >
         <Box display="flex" alignItems="center">
           <Typography variant="h6" component={NavLink} to="/" sx={navStyles}>
-            RE-STORE
+            RE-STOR
           </Typography>
           <Switch checked={darkMode} onChange={handleThemeChange} />
         </Box>
@@ -65,6 +65,11 @@ export default function Header({ darkMode, handleThemeChange }: Props) {
               {title.toUpperCase()}
             </ListItem>
           ))}
+          {user && (user.roles?.includes('admin') || user.roles?.includes('Admin')) && (
+            <ListItem component={NavLink} to={"/inventory"} sx={navStyles}>
+              INVENTORY
+            </ListItem>
+          )}
         </List>
 
         <Box display="flex" alignItems="center">
