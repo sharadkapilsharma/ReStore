@@ -14,7 +14,7 @@ const responseBody = (response: AxiosResponse) => response.data;
 
 axios.interceptors.request.use((config) => {
   const token = store.getState().account.user?.token; // token is attched to every request
-   
+
   if (token) config.headers!.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -54,6 +54,9 @@ axios.interceptors.response.use(
       case 401:
         toast.error(data.title);
         break;
+      case 403:
+        toast.error('You are not allowed to do that!');
+        break;
       case 500:
         history.push("/server-error", { error: data });
         break;
@@ -70,6 +73,34 @@ const requests = {
   post: (url: string, body: {}) => axios.post(url, body).then(responseBody),
   put: (url: string, body: {}) => axios.put(url, body).then(responseBody),
   delete: (url: string) => axios.delete(url).then(responseBody),
+  postForm: (url: string, data: FormData) =>
+    axios
+      .post(url, data, {
+        headers: { "content-type": "multipart/form-data" },
+      })
+      .then(responseBody),
+  putForm: (url: string, data: FormData) =>
+    axios
+      .put(url, data, {
+        headers: { "content-type": "multipart/form-data" },
+      })
+      .then(responseBody),
+};
+
+function createFormData(item: any) {
+  let formData = new FormData();
+  for (const key in item) {
+    formData.append(key, item[key]);
+  }
+  return formData;
+}
+
+const Admin = {
+  createProduct: (product: any) =>
+    requests.postForm("products", createFormData(product)),
+  updateProduct: (product: any) =>
+    requests.putForm("products", createFormData(product)),
+  deleteProduct: (id: number) => requests.delete(`products/${id}`),
 };
 
 const Catalog = {
@@ -98,15 +129,15 @@ const Account = {
   login: (values: any) => requests.post("account/login", values),
   register: (values: any) => requests.post("account/register", values),
   currentUser: () => requests.get("account/currentUser"),
-  fetchAddress: () => requests.get("account.savedAddress")
+  fetchAddress: () => requests.get("account.savedAddress"),
 };
 
 const Orders = {
-  list: () => requests.get('orders'),
+  list: () => requests.get("orders"),
   fetch: (id: number) => requests.get(`orders/${id}`),
-  create: (values: any) => requests.post('orders', values)
-}
+  create: (values: any) => requests.post("orders", values),
+};
 
-const agent = { Catalog, TestErrors, Basket, Account, Orders };
+const agent = { Catalog, TestErrors, Basket, Account, Orders, Admin };
 
 export default agent;
